@@ -3,9 +3,10 @@
 import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { toast } from "sonner"
-import { DownloadIcon, Trash2Icon, LoaderIcon } from "lucide-react"
+import { DownloadIcon, Trash2Icon, LoaderIcon, RefreshCwIcon } from "lucide-react"
 
-import { DataTable } from "@/src/components/dashboard/data-table"
+// ⚠️  DataTable UI bukan dari file ini sendiri — import dari komponen generik
+import { DataTable } from "@/src/components/ui/data-table"
 import { Badge } from "@/src/components/ui/badge"
 import { Button } from "@/src/components/ui/button"
 import { Skeleton } from "@/src/components/ui/skeleton"
@@ -16,7 +17,10 @@ import { formatDate, formatNumber } from "@/src/core/lib/format"
 
 const PAGE_LIMIT = 10
 
-const statusVariant: Record<DatasetStatus, "default" | "outline" | "destructive" | "secondary"> = {
+const statusVariant: Record<
+  DatasetStatus,
+  "default" | "outline" | "destructive" | "secondary"
+> = {
   DRAFT: "secondary",
   PROCESSING: "outline",
   READY: "default",
@@ -36,7 +40,9 @@ export function DatasetsTable() {
   const [totalPages, setTotalPages] = React.useState(1)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
-  const [pendingActionId, setPendingActionId] = React.useState<string | null>(null)
+  const [pendingActionId, setPendingActionId] = React.useState<string | null>(
+    null
+  )
 
   const load = React.useCallback(async () => {
     setIsLoading(true)
@@ -46,7 +52,9 @@ export function DatasetsTable() {
       setDatasets(result.data)
       setTotalPages(result.totalPages)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memuat dataset")
+      setError(
+        err instanceof Error ? err.message : "Gagal memuat dataset"
+      )
     } finally {
       setIsLoading(false)
     }
@@ -74,6 +82,12 @@ export function DatasetsTable() {
   }
 
   const handleDelete = async (dataset: Dataset) => {
+    // Konfirmasi ringan sebelum menghapus secara permanen
+    const confirmed = window.confirm(
+      `Hapus dataset "${dataset.name}"? Tindakan ini tidak dapat dibatalkan.`
+    )
+    if (!confirmed) return
+
     setPendingActionId(dataset.id)
     try {
       await DatasetService.delete(dataset.id)
@@ -98,7 +112,9 @@ export function DatasetsTable() {
     {
       accessorKey: "exportFormat",
       header: "Format",
-      cell: ({ row }) => <Badge variant="outline">{row.original.exportFormat}</Badge>,
+      cell: ({ row }) => (
+        <Badge variant="outline">{row.original.exportFormat}</Badge>
+      ),
     },
     {
       accessorKey: "status",
@@ -131,7 +147,7 @@ export function DatasetsTable() {
               variant="outline"
               size="icon-sm"
               onClick={() => handleExport(dataset)}
-              disabled={isPending}
+              disabled={isPending || dataset.status === "PROCESSING"}
               title="Ekspor dataset"
             >
               {isPending ? (
@@ -166,7 +182,15 @@ export function DatasetsTable() {
   }
 
   if (error) {
-    return <div className="px-4 text-sm text-destructive lg:px-6">{error}</div>
+    return (
+      <div className="flex flex-col items-start gap-3 px-4 lg:px-6">
+        <p className="text-sm text-destructive">{error}</p>
+        <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
+          <RefreshCwIcon className="size-3.5" />
+          Coba lagi
+        </Button>
+      </div>
+    )
   }
 
   return (

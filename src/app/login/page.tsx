@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { LoginForm } from "@/src/components/login/login-form"
+
+export const metadata: Metadata = {
+  title: "Login — Durian Classifier Admin",
+  description: "Masuk ke panel administrasi",
+}
 
 export default function LoginPage() {
   return (

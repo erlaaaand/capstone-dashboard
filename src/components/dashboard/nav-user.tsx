@@ -2,11 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LogOut,
-} from "lucide-react"
+import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react"
 
 import {
   Avatar,
@@ -28,33 +24,40 @@ import {
   useSidebar,
 } from "@/src/components/ui/sidebar"
 
-// 1. Impor Service dan Tipe Data yang ketat (Tanpa 'any')
 import { AuthService } from "@/src/core/services/auth.service"
 import { AuthUser } from "@/src/core/types/auth.types"
 
 interface NavUserProps {
-  user: AuthUser; // Tipe data ketat dari backend
+  user: AuthUser
 }
 
 export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar()
   const router = useRouter()
 
-  // 2. Fungsi penanganan Logout
   const handleLogout = async () => {
     try {
       await AuthService.logout()
-      toast.success("Berhasil Keluar", { description: "Sesi Anda telah diakhiri." })
+      toast.success("Berhasil Keluar", {
+        description: "Sesi Anda telah diakhiri.",
+      })
       router.push("/login")
     } catch {
-      toast.error("Gagal Keluar", { description: "Terjadi kesalahan saat logout." })
+      toast.error("Gagal Keluar", {
+        description: "Terjadi kesalahan saat logout.",
+      })
     }
   }
 
-  // 3. Helper untuk membuat inisial nama (Misal: "Admin User" -> "AU")
-  const getInitials = (name: string | null) => {
+  /** Buat inisial dari fullName: "Admin User" → "AU" */
+  const getInitials = (name: string | null): string => {
     if (!name) return "AD"
-    return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
   }
 
   const displayName = user.fullName || "Administrator"
@@ -69,7 +72,6 @@ export function NavUser({ user }: NavUserProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                {/* Asumsikan admin belum punya avatar khusus, kita pakai Fallback */}
                 <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
                   {getInitials(user.fullName)}
                 </AvatarFallback>
@@ -81,6 +83,7 @@ export function NavUser({ user }: NavUserProps) {
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
@@ -100,18 +103,26 @@ export function NavUser({ user }: NavUserProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck className="mr-2 size-4" />
-                Account Settings
+              <DropdownMenuItem asChild>
+                <a href="/dashboard/settings">
+                  <BadgeCheck className="mr-2 size-4" />
+                  Pengaturan Akun
+                </a>
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
-            {/* 4. Pasang event onClick ke menu Logout */}
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
+
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+            >
               <LogOut className="mr-2 size-4" />
-              Log out
+              Keluar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

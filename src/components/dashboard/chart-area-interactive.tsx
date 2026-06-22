@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { RefreshCwIcon } from "lucide-react"
 
 import { useIsMobile } from "@/src/core/hooks/use-mobile"
 import {
@@ -30,11 +31,10 @@ import {
   ToggleGroupItem,
 } from "@/src/components/ui/toggle-group"
 import { Skeleton } from "@/src/components/ui/skeleton"
+import { Button } from "@/src/components/ui/button"
 
 import { AdminPredictionService } from "@/src/core/services/prediction.service"
 import { formatShortDate } from "@/src/core/lib/format"
-
-export const description = "Tren prediksi harian: berhasil vs gagal"
 
 const chartConfig = {
   predictions: {
@@ -64,8 +64,12 @@ function buildDailySeries(
   const byDate = new Map<string, DailyPoint>()
 
   for (const prediction of predictions) {
-    const dateKey = prediction.createdAt.slice(0, 10) // YYYY-MM-DD
-    const existing = byDate.get(dateKey) ?? { date: dateKey, success: 0, failed: 0 }
+    const dateKey = prediction.createdAt.slice(0, 10)
+    const existing = byDate.get(dateKey) ?? {
+      date: dateKey,
+      success: 0,
+      failed: 0,
+    }
     if (prediction.status === "SUCCESS") {
       existing.success += 1
     } else if (prediction.status === "FAILED") {
@@ -74,7 +78,9 @@ function buildDailySeries(
     byDate.set(dateKey, existing)
   }
 
-  return Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
+  return Array.from(byDate.values()).sort((a, b) =>
+    a.date.localeCompare(b.date)
+  )
 }
 
 export function ChartAreaInteractive() {
@@ -85,37 +91,36 @@ export function ChartAreaInteractive() {
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d")
-    }
+    if (isMobile) setTimeRange("7d")
   }, [isMobile])
+
+  const load = React.useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await AdminPredictionService.list({
+        page: 1,
+        limit: FETCH_LIMIT,
+      })
+      setSeries(buildDailySeries(result.data))
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Gagal memuat tren prediksi"
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   React.useEffect(() => {
     let isMounted = true
-
-    async function load() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const result = await AdminPredictionService.list({
-          page: 1,
-          limit: FETCH_LIMIT,
-        })
-        if (!isMounted) return
-        setSeries(buildDailySeries(result.data))
-      } catch (err) {
-        if (!isMounted) return
-        setError(err instanceof Error ? err.message : "Gagal memuat tren prediksi")
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-
-    load()
+    load().then(() => {
+      if (!isMounted) return
+    })
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [load])
 
   const filteredData = React.useMemo(() => {
     if (series.length === 0) return []
@@ -156,7 +161,7 @@ export function ChartAreaInteractive() {
             <SelectTrigger
               className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
               size="sm"
-              aria-label="Select a value"
+              aria-label="Pilih rentang waktu"
             >
               <SelectValue placeholder="3 bulan terakhir" />
             </SelectTrigger>
@@ -174,12 +179,22 @@ export function ChartAreaInteractive() {
           </Select>
         </CardAction>
       </CardHeader>
+
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {isLoading ? (
           <Skeleton className="h-[250px] w-full" />
         ) : error ? (
-          <div className="flex h-[250px] items-center justify-center text-sm text-destructive">
-            {error}
+          <div className="flex h-[250px] flex-col items-center justify-center gap-3 text-sm text-destructive">
+            <span>{error}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={load}
+              className="gap-1.5"
+            >
+              <RefreshCwIcon className="size-3.5" />
+              Coba lagi
+            </Button>
           </div>
         ) : filteredData.length === 0 ? (
           <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
@@ -193,12 +208,28 @@ export function ChartAreaInteractive() {
             <AreaChart data={filteredData}>
               <defs>
                 <linearGradient id="fillSuccess" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-success)" stopOpacity={1.0} />
-                  <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-success)"
+                    stopOpacity={1.0}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-success)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
                 <linearGradient id="fillFailed" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-failed)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--color-failed)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-failed)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-failed)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} />

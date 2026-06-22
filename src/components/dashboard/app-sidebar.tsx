@@ -15,168 +15,133 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/src/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import {
+  LayoutDashboardIcon,
+  ListIcon,
+  ChartBarIcon,
+  FolderIcon,
+  UsersIcon,
+  CameraIcon,
+  FileTextIcon,
+  Settings2Icon,
+  CircleHelpIcon,
+  SearchIcon,
+  DatabaseIcon,
+  FileChartColumnIcon,
+  FileIcon,
+  CommandIcon,
+} from "lucide-react"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+import { useCurrentUser } from "@/src/core/hooks/use-current-user"
+import { AuthUser } from "@/src/core/types/auth.types"
+
+const navMain = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: <LayoutDashboardIcon />,
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: (
-        <LayoutDashboardIcon
-        />
-      ),
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: (
-        <ListIcon
-        />
-      ),
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: (
-        <ChartBarIcon
-        />
-      ),
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: (
-        <FolderIcon
-        />
-      ),
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: (
-        <UsersIcon
-        />
-      ),
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: (
-        <CameraIcon
-        />
-      ),
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: (
-        <CircleHelpIcon
-        />
-      ),
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: (
-        <DatabaseIcon
-        />
-      ),
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: (
-        <FileChartColumnIcon
-        />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <FileIcon
-        />
-      ),
-    },
-  ],
+  {
+    title: "Lifecycle",
+    url: "/dashboard/lifecycle",
+    icon: <ListIcon />,
+  },
+  {
+    title: "Analytics",
+    url: "/dashboard/analytics",
+    icon: <ChartBarIcon />,
+  },
+  {
+    title: "Projects",
+    url: "/dashboard/projects",
+    icon: <FolderIcon />,
+  },
+  {
+    title: "Team",
+    url: "/dashboard/team",
+    icon: <UsersIcon />,
+  },
+]
+
+const navClouds = [
+  {
+    title: "Capture",
+    icon: <CameraIcon />,
+    isActive: true,
+    url: "/dashboard/capture",
+    items: [
+      { title: "Active Proposals", url: "/dashboard/capture/active" },
+      { title: "Archived", url: "/dashboard/capture/archived" },
+    ],
+  },
+  {
+    title: "Proposal",
+    icon: <FileTextIcon />,
+    url: "/dashboard/proposal",
+    items: [
+      { title: "Active Proposals", url: "/dashboard/proposal/active" },
+      { title: "Archived", url: "/dashboard/proposal/archived" },
+    ],
+  },
+  {
+    title: "Prompts",
+    icon: <FileTextIcon />,
+    url: "/dashboard/prompts",
+    items: [
+      { title: "Active Proposals", url: "/dashboard/prompts/active" },
+      { title: "Archived", url: "/dashboard/prompts/archived" },
+    ],
+  },
+]
+
+const navSecondary = [
+  {
+    title: "Settings",
+    url: "/dashboard/settings",
+    icon: <Settings2Icon />,
+  },
+  {
+    title: "Get Help",
+    url: "/dashboard/help",
+    icon: <CircleHelpIcon />,
+  },
+  {
+    title: "Search",
+    url: "/dashboard/search",
+    icon: <SearchIcon />,
+  },
+]
+
+const documents = [
+  {
+    name: "Data Library",
+    url: "/dashboard/data-library",
+    icon: <DatabaseIcon />,
+  },
+  {
+    name: "Reports",
+    url: "/dashboard/reports",
+    icon: <FileChartColumnIcon />,
+  },
+  {
+    name: "Word Assistant",
+    url: "/dashboard/word-assistant",
+    icon: <FileIcon />,
+  },
+]
+
+/** Fallback user saat data belum tersedia dari localStorage */
+const FALLBACK_USER: AuthUser = {
+  id: "",
+  email: "",
+  fullName: "Administrator",
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Ambil data user yang sudah di-persist saat login
+  const currentUser = useCurrentUser()
+  const user: AuthUser = currentUser ?? FALLBACK_USER
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -186,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
+              <a href="/dashboard">
                 <CommandIcon className="size-5!" />
                 <span className="text-base font-semibold">Acme Inc.</span>
               </a>
@@ -195,12 +160,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavDocuments items={documents} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {/* Teruskan AuthUser langsung — NavUser sudah mengharapkan tipe ini */}
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )
