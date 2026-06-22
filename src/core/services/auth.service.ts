@@ -1,6 +1,7 @@
 import { apiClient } from '../api/api-client';
 import { setCookie, deleteCookie } from 'cookies-next';
 import { LoginRequest, AuthResponse } from '../types/auth.types';
+import { persistCurrentUser, clearCurrentUser } from '../hooks/use-current-user';
 
 export const AuthService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -8,6 +9,10 @@ export const AuthService = {
 
     if (response.accessToken) {
       setCookie('admin_token', response.accessToken, { maxAge: 60 * 60 * 24 });
+    }
+
+    if (response.user) {
+      persistCurrentUser(response.user);
     }
 
     return response;
@@ -20,6 +25,7 @@ export const AuthService = {
       console.warn('Logout backend gagal, tetapi token lokal akan tetap dihapus', error);
     } finally {
       deleteCookie('admin_token');
+      clearCurrentUser();
     }
   }
 };
