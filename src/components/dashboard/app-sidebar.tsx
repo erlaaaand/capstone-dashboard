@@ -2,9 +2,7 @@
 
 import * as React from "react"
 
-import { NavDocuments } from "@/src/components/dashboard/nav-documents"
 import { NavMain } from "@/src/components/dashboard/nav-main"
-import { NavSecondary } from "@/src/components/dashboard/nav-secondary"
 import { NavUser } from "@/src/components/dashboard/nav-user"
 import {
   Sidebar,
@@ -17,24 +15,15 @@ import {
 } from "@/src/components/ui/sidebar"
 import {
   LayoutDashboardIcon,
-  ListIcon,
-  ChartBarIcon,
-  FolderIcon,
-  UsersIcon,
-  CameraIcon,
-  FileTextIcon,
-  Settings2Icon,
-  CircleHelpIcon,
-  SearchIcon,
-  DatabaseIcon,
-  FileChartColumnIcon,
-  FileIcon,
-  CommandIcon,
+  ScanSearchIcon,
+  DownloadIcon,
+  LeafIcon,
 } from "lucide-react"
 
 import { useCurrentUser } from "@/src/core/hooks/use-current-user"
 import { AuthUser } from "@/src/core/types/auth.types"
 
+/** Menu navigasi utama — persis 3 sesuai spesifikasi */
 const navMain = [
   {
     title: "Dashboard",
@@ -42,91 +31,14 @@ const navMain = [
     icon: <LayoutDashboardIcon />,
   },
   {
-    title: "Lifecycle",
-    url: "/dashboard/lifecycle",
-    icon: <ListIcon />,
+    title: "Kurasi AI",
+    url: "/dashboard/kurasi-ai",
+    icon: <ScanSearchIcon />,
   },
   {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: <ChartBarIcon />,
-  },
-  {
-    title: "Projects",
-    url: "/dashboard/projects",
-    icon: <FolderIcon />,
-  },
-  {
-    title: "Team",
-    url: "/dashboard/team",
-    icon: <UsersIcon />,
-  },
-]
-
-const navClouds = [
-  {
-    title: "Capture",
-    icon: <CameraIcon />,
-    isActive: true,
-    url: "/dashboard/capture",
-    items: [
-      { title: "Active Proposals", url: "/dashboard/capture/active" },
-      { title: "Archived", url: "/dashboard/capture/archived" },
-    ],
-  },
-  {
-    title: "Proposal",
-    icon: <FileTextIcon />,
-    url: "/dashboard/proposal",
-    items: [
-      { title: "Active Proposals", url: "/dashboard/proposal/active" },
-      { title: "Archived", url: "/dashboard/proposal/archived" },
-    ],
-  },
-  {
-    title: "Prompts",
-    icon: <FileTextIcon />,
-    url: "/dashboard/prompts",
-    items: [
-      { title: "Active Proposals", url: "/dashboard/prompts/active" },
-      { title: "Archived", url: "/dashboard/prompts/archived" },
-    ],
-  },
-]
-
-const navSecondary = [
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: <Settings2Icon />,
-  },
-  {
-    title: "Get Help",
-    url: "/dashboard/help",
-    icon: <CircleHelpIcon />,
-  },
-  {
-    title: "Search",
-    url: "/dashboard/search",
-    icon: <SearchIcon />,
-  },
-]
-
-const documents = [
-  {
-    name: "Data Library",
-    url: "/dashboard/data-library",
-    icon: <DatabaseIcon />,
-  },
-  {
-    name: "Reports",
-    url: "/dashboard/reports",
-    icon: <FileChartColumnIcon />,
-  },
-  {
-    name: "Word Assistant",
-    url: "/dashboard/word-assistant",
-    icon: <FileIcon />,
+    title: "Export Dataset",
+    url: "/dashboard/export-dataset",
+    icon: <DownloadIcon />,
   },
 ]
 
@@ -152,8 +64,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <a href="/dashboard">
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <LeafIcon className="size-5! text-green-500" />
+                <span className="text-base font-semibold">Durian Classifier</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -161,8 +73,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavDocuments items={documents} />
-        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         {/* Teruskan AuthUser langsung — NavUser sudah mengharapkan tipe ini */}

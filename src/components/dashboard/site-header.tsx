@@ -6,19 +6,8 @@ import { SidebarTrigger } from "@/src/components/ui/sidebar"
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/dashboard/lifecycle": "Lifecycle",
-  "/dashboard/analytics": "Analytics",
-  "/dashboard/projects": "Projects",
-  "/dashboard/team": "Team",
-  "/dashboard/capture": "Capture",
-  "/dashboard/proposal": "Proposal",
-  "/dashboard/prompts": "Prompts",
-  "/dashboard/settings": "Pengaturan",
-  "/dashboard/help": "Bantuan",
-  "/dashboard/search": "Pencarian",
-  "/dashboard/data-library": "Data Library",
-  "/dashboard/reports": "Reports",
-  "/dashboard/word-assistant": "Word Assistant",
+  "/dashboard/kurasi-ai": "Kurasi AI",
+  "/dashboard/export-dataset": "Export Dataset",
 }
 
 function resolveTitle(pathname: string): string {
