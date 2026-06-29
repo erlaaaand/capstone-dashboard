@@ -9,7 +9,7 @@ export interface AdminPredictionListParams {
   status?: 'PENDING' | 'SUCCESS' | 'FAILED';
   isVerified?: boolean;
   varietyCode?: string;
-  isCurated: boolean;
+  isCurated?: boolean; // Fix: optional — chart fetch semua prediksi tanpa filter ini
 }
 
 export interface VerifyPredictionPayload {
@@ -44,9 +44,8 @@ export const AdminPredictionService = {
         throw new Error('Dataset kosong atau tidak ada data yang bisa diekspor');
       }
 
-      // Fix TS2339: response.headers bisa berupa AxiosHeaders | plain object.
-      // Gunakan AxiosHeaders.from() agar selalu punya .get() yang type-safe,
-      // hasilnya string | number | boolean | null — narrow ke string sebelum .includes().
+      // Fix TS2339: gunakan AxiosHeaders.from() agar .get() type-safe,
+      // lalu narrow ke string sebelum .includes()
       const headers = AxiosHeaders.from(response.headers);
       const contentTypeRaw = headers.get('content-type');
       const contentType = typeof contentTypeRaw === 'string' ? contentTypeRaw : '';
@@ -68,7 +67,6 @@ export const AdminPredictionService = {
       // Tangani HTTP error (4xx/5xx) yang body-nya Blob berisi JSON
       if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
         const errorBlob = error.response.data as Blob;
-        // blob.type adalah string murni — .includes() aman dipakai di sini
         if (errorBlob.type.includes('application/json')) {
           const errorText = await errorBlob.text();
           try {
