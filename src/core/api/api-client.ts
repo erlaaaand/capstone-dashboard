@@ -25,9 +25,9 @@ apiClient.interceptors.response.use(
       response.config.responseType === 'blob' ||
       response.config.responseType === 'arraybuffer'
     ) {
-      return response;
+      return response; // kembalikan AxiosResponse penuh agar service bisa akses .data sebagai Blob
     }
-    return response.data;
+    return response.data; // behaviour lama: unwrap untuk JSON biasa
   },
   (error) => {
     if (error.response?.status === 401) {

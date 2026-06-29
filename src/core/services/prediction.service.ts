@@ -1,5 +1,5 @@
 // src/core/services/prediction.service.ts
-import axios, { AxiosHeaders, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { apiClient } from '../api/api-client';
 import { PaginatedPredictions, Prediction } from '../types/prediction.types';
 
@@ -9,13 +9,24 @@ export interface AdminPredictionListParams {
   status?: 'PENDING' | 'SUCCESS' | 'FAILED';
   isVerified?: boolean;
   varietyCode?: string;
-  isCurated?: boolean; // Fix: optional — chart fetch semua prediksi tanpa filter ini
+  isCurated?: boolean; // optional: chart tidak perlu filter ini
 }
 
 export interface VerifyPredictionPayload {
   isVerified: boolean;
   adminNote?: string;
   correctedVarietyCode?: string;
+}
+
+/** Ekstrak Content-Type dari response headers secara type-safe.
+ *  AxiosResponseHeaders bisa berupa berbagai bentuk — normalisasi ke string kosong
+ *  jika tidak ditemukan atau bukan string.
+ */
+function getContentType(headers: AxiosResponse['headers']): string {
+  const raw = headers['content-type'] ?? headers['Content-Type'];
+  if (typeof raw === 'string') return raw;
+  if (Array.isArray(raw)) return raw[0] ?? '';
+  return '';
 }
 
 export const AdminPredictionService = {
@@ -33,7 +44,8 @@ export const AdminPredictionService = {
 
   exportDataset: async (): Promise<Blob> => {
     try {
-      // responseType 'blob' membuat interceptor mengembalikan AxiosResponse penuh
+      // responseType 'blob' membuat interceptor (api-client.ts) mengembalikan
+      // AxiosResponse penuh — bukan unwrap .data seperti JSON biasa.
       const response = await apiClient.get('/admin/predictions/export', {
         responseType: 'blob',
       }) as unknown as AxiosResponse<Blob>;
@@ -44,14 +56,9 @@ export const AdminPredictionService = {
         throw new Error('Dataset kosong atau tidak ada data yang bisa diekspor');
       }
 
-      // Fix TS2339: gunakan AxiosHeaders.from() agar .get() type-safe,
-      // lalu narrow ke string sebelum .includes()
-      const headers = AxiosHeaders.from(response.headers);
-      const contentTypeRaw = headers.get('content-type');
-      const contentType = typeof contentTypeRaw === 'string' ? contentTypeRaw : '';
-
+      // Cek apakah server return JSON error dengan status 2xx (body bertipe blob)
+      const contentType = getContentType(response.headers);
       if (contentType.includes('application/json')) {
-        // Server return JSON error dengan status 2xx — ekstrak pesannya
         const errorText = await blob.text();
         try {
           const errorJson = JSON.parse(errorText) as { message?: string };
@@ -67,23 +74,19 @@ export const AdminPredictionService = {
       // Tangani HTTP error (4xx/5xx) yang body-nya Blob berisi JSON
       if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
         const errorBlob = error.response.data as Blob;
+        // blob.type adalah string biasa — aman pakai .includes()
         if (errorBlob.type.includes('application/json')) {
-          const errorText = await errorBlob.text();
           try {
+            const errorText = await errorBlob.text();
             const errorJson = JSON.parse(errorText) as { message?: string };
             throw new Error(errorJson.message || 'Gagal mengunduh dataset');
           } catch (parseErr) {
-            if (parseErr instanceof Error && parseErr.message !== 'Gagal mengunduh dataset') {
-              throw parseErr;
-            }
+            if (parseErr instanceof Error) throw parseErr;
           }
         }
       }
 
-      if (error instanceof Error) {
-        throw error;
-      }
-
+      if (error instanceof Error) throw error;
       throw new Error('Terjadi kesalahan yang tidak diketahui saat mengekspor dataset');
     }
   }

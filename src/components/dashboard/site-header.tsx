@@ -4,17 +4,15 @@ import { usePathname } from "next/navigation"
 import { Separator } from "@/src/components/ui/separator"
 import { SidebarTrigger } from "@/src/components/ui/sidebar"
 
-/** Hanya 2 menu sesuai spesifikasi: Dashboard dan Kurasi AI */
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/kurasi-ai": "Kurasi AI",
+  "/dashboard/dataset": "Dataset Terverifikasi",
 }
 
 function resolveTitle(pathname: string): string {
-  // Cari kecocokan persis dulu
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
 
-  // Fallback: ambil segmen terakhir dan kapitalisasi
   const segments = pathname.split("/").filter(Boolean)
   const last = segments[segments.length - 1] ?? "Dashboard"
   return last.charAt(0).toUpperCase() + last.slice(1).replace(/-/g, " ")

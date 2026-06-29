@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react"
+import { ChevronsUpDown, LogOut } from "lucide-react"
 
 import {
   Avatar,
@@ -11,7 +11,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -49,7 +48,6 @@ export function NavUser({ user }: NavUserProps) {
     }
   }
 
-  /** Buat inisial dari fullName: "Admin User" → "AU" */
   const getInitials = (name: string | null): string => {
     if (!name) return "AD"
     return name
@@ -103,17 +101,6 @@ export function NavUser({ user }: NavUserProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <a href="/dashboard/settings">
-                  <BadgeCheck className="mr-2 size-4" />
-                  Pengaturan Akun
-                </a>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
