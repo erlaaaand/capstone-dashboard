@@ -50,7 +50,7 @@ export function PredictionCardGrid({ predictions, mode = "curation" }: Predictio
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {predictions.map((prediction: Prediction) => {
           const isPending = prediction.status === "PENDING"
-          const isCurated = typeof prediction.isVerified === "boolean"
+          const isCurated = prediction.isVerified !== null && prediction.isVerified !== undefined;
 
           return (
             <Card

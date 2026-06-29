@@ -119,7 +119,7 @@ export function VerificationModal({
         : "secondary"
 
   const isFailedPrediction = prediction.status === "FAILED"
-  const isCurated = typeof prediction.isVerified === "boolean"
+  const isCurated = prediction.isVerified !== null && prediction.isVerified !== undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -290,46 +290,52 @@ export function VerificationModal({
             disabled={isSubmitting}
             className="text-xs h-9 sm:w-auto w-full"
           >
-            Batal
+            {/* Ubah teks Batal menjadi Tutup jika mode readOnly/dataset */}
+            {readOnly ? "Tutup" : "Batal"}
           </Button>
 
-          <Button
-            variant="destructive"
-            onClick={() => handleVerify(false)}
-            disabled={isSubmitting}
-            className="text-xs h-9 sm:w-auto w-full gap-1.5 font-medium shadow-xs"
-          >
-            {isSubmitting ? (
-              <LoaderIcon className="size-3.5 animate-spin" />
-            ) : (
-              <XCircleIcon className="size-3.5" />
-            )}
-            Simpan Koreksi (Salah)
-          </Button>
+          {/* Sembunyikan semua tombol aksi di bawah ini jika readOnly bernilai true */}
+          {!readOnly && (
+            <>
+              <Button
+                variant="destructive"
+                onClick={() => handleVerify(false)}
+                disabled={isSubmitting}
+                className="text-xs h-9 sm:w-auto w-full gap-1.5 font-medium shadow-xs"
+              >
+                {isSubmitting ? (
+                  <LoaderIcon className="size-3.5 animate-spin" />
+                ) : (
+                  <XCircleIcon className="size-3.5" />
+                )}
+                Simpan Koreksi (Salah)
+              </Button>
 
-          <Button
-            variant="ghost"
-            onClick={handleDelete}
-            disabled={isSubmitting}
-            className="text-xs h-9 sm:w-auto w-full text-destructive hover:text-destructive hover:bg-destructive/10 sm:mr-auto"
-          >
-            <TrashIcon className="size-3.5 mr-1.5" />
-            Hapus Gambar
-          </Button>
+              <Button
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={isSubmitting}
+                className="text-xs h-9 sm:w-auto w-full text-destructive hover:text-destructive hover:bg-destructive/10 sm:mr-auto"
+              >
+                <TrashIcon className="size-3.5 mr-1.5" />
+                Hapus Gambar
+              </Button>
 
-          {!isFailedPrediction && (
-            <Button
-              onClick={() => handleVerify(true)}
-              disabled={isSubmitting || !!correctedVariety}
-              className="text-xs h-9 sm:w-auto w-full gap-1.5 font-medium shadow-xs"
-            >
-              {isSubmitting ? (
-                <LoaderIcon className="size-3.5 animate-spin" />
-              ) : (
-                <CheckCircleIcon className="size-3.5" />
+              {!isFailedPrediction && (
+                <Button
+                  onClick={() => handleVerify(true)}
+                  disabled={isSubmitting || !!correctedVariety}
+                  className="text-xs h-9 sm:w-auto w-full gap-1.5 font-medium shadow-xs"
+                >
+                  {isSubmitting ? (
+                    <LoaderIcon className="size-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircleIcon className="size-3.5" />
+                  )}
+                  Konfirmasi (Benar)
+                </Button>
               )}
-              Konfirmasi (Benar)
-            </Button>
+            </>
           )}
         </DialogFooter>
       </DialogContent>

@@ -8,7 +8,7 @@ export interface Prediction {
   confidenceScore: number | null;
   imageUrl: string;
   status: PredictionStatus;
-  isVerified: boolean | null;
+  isVerified: string;
   adminNote: string | null;
   actualVarietyCode: string | null;
   verifiedAt: string | null;

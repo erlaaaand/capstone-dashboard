@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://nestjs-backend-production.up.railway.app/api/v1';
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://nestjs-backed-production.up.railway.app/api/v1';
 
 export const apiClient = axios.create({
   baseURL,

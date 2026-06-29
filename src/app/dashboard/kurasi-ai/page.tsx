@@ -29,6 +29,8 @@ export default async function KurasiAiPage({
     data = await fetchServer<PaginatedPredictions>(
       `/admin/predictions?page=${page}&limit=${ITEMS_PER_PAGE}&isCurated=false`
     )
+
+
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Gagal memuat data prediksi"
     data = { data: [], total: 0, page, limit: ITEMS_PER_PAGE, totalPages: 0 }

@@ -31,9 +31,31 @@ export const AdminPredictionService = {
   },
 
   exportDataset: async (): Promise<Blob> => {
-    const response = await apiClient.get('/admin/predictions/export', {
-      responseType: 'blob',
-    });
-    return response as unknown as Blob;
+    try {
+      const response = await apiClient.get('/admin/predictions/export', {
+        responseType: 'blob',
+      });
+
+      return response.data as Blob;
+
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+
+        const errObj = error as { response?: { data?: unknown } };
+        const errorData = errObj.response?.data;
+
+        if (errorData instanceof Blob && errorData.type === 'application/json') {
+          const errorText = await errorData.text();
+          const errorJson = JSON.parse(errorText) as { message?: string };
+          throw new Error(errorJson.message || 'Gagal mengunduh dataset');
+        }
+      }
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error('Terjadi kesalahan yang tidak diketahui saat mengekspor dataset');
+    }
   }
 };
