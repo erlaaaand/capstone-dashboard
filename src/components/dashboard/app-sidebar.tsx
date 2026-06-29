@@ -16,14 +16,14 @@ import {
 import {
   LayoutDashboardIcon,
   ScanSearchIcon,
-  DownloadIcon,
   LeafIcon,
+  DatabaseIcon
 } from "lucide-react"
 
 import { useCurrentUser } from "@/src/core/hooks/use-current-user"
 import { AuthUser } from "@/src/core/types/auth.types"
 
-/** Menu navigasi utama — persis 3 sesuai spesifikasi */
+/** Menu navigasi utama — persis 2 sesuai spesifikasi */
 const navMain = [
   {
     title: "Dashboard",
@@ -36,9 +36,9 @@ const navMain = [
     icon: <ScanSearchIcon />,
   },
   {
-    title: "Export Dataset",
-    url: "/dashboard/export-dataset",
-    icon: <DownloadIcon />,
+    title: "Dataset",
+    url: "/dashboard/dataset",
+    icon: <DatabaseIcon />,
   },
 ]
 

@@ -16,8 +16,11 @@ const nextConfig: NextConfig = {
         port: "3001",
         pathname: "/**",
       },
-      // Tambahkan hostname storage backend production di sini
-      // Contoh: { protocol: "https", hostname: "**.supabase.co" },
+      {
+        protocol: "https",
+        hostname: "ncexezvwssvcfffipiqk.supabase.co",
+        pathname: "/**",
+      },
     ],
   },
 };

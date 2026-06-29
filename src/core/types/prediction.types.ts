@@ -10,6 +10,8 @@ export interface Prediction {
   status: PredictionStatus;
   isVerified: boolean | null;
   adminNote: string | null;
+  actualVarietyCode: string | null;
+  verifiedAt: string | null;
   createdAt: string;
 }
 

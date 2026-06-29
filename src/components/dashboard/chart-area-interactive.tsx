@@ -56,7 +56,7 @@ interface DailyPoint {
   failed: number
 }
 
-const FETCH_LIMIT = 200
+const FETCH_LIMIT = 50
 
 function buildDailySeries(
   predictions: { createdAt: string; status: string }[]
