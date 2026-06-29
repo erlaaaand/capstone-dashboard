@@ -12,10 +12,10 @@ export function ExportButton() {
   async function handleExport() {
     setIsExporting(true)
     const toastId = toast.loading("Menyiapkan dataset... Ini mungkin memakan waktu.")
-    
+
     try {
       const blob = await AdminPredictionService.exportDataset()
-      
+
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
@@ -27,7 +27,7 @@ export function ExportButton() {
 
       toast.success("Export berhasil diselesaikan", { id: toastId })
     } catch (err) {
-      toast.error("Gagal mengekspor dataset", { 
+      toast.error("Gagal mengekspor dataset", {
         id: toastId,
         description: "Pastikan ada data terverifikasi atau koneksi stabil."
       })
@@ -37,11 +37,11 @@ export function ExportButton() {
   }
 
   return (
-    <Button 
-      onClick={handleExport} 
-      disabled={isExporting} 
-      variant="outline" 
-      size="sm" 
+    <Button
+      onClick={handleExport}
+      disabled={isExporting}
+      variant="outline"
+      size="sm"
       className="gap-2 shadow-xs bg-background"
     >
       {isExporting ? <LoaderIcon className="size-3.5 animate-spin" /> : <DownloadIcon className="size-3.5" />}

@@ -16,9 +16,10 @@ import { CheckCircle2, XCircle, Clock3, Leaf } from "lucide-react"
 
 interface PredictionCardGridProps {
   predictions: Prediction[]
+  mode?: "curation" | "dataset"
 }
 
-export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
+export function PredictionCardGrid({ predictions, mode = "curation" }: PredictionCardGridProps) {
   const [selectedPrediction, setSelectedPrediction] = React.useState<Prediction | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
 
@@ -35,7 +36,11 @@ export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
           <Leaf className="size-6 text-muted-foreground" />
         </div>
         <p className="text-lg font-medium">Tidak ada data ditemukan</p>
-        <p className="text-sm text-muted-foreground">Data prediksi tidak tersedia saat ini.</p>
+        <p className="text-sm text-muted-foreground">
+          {mode === "curation"
+            ? "Semua prediksi sudah dikurasi. Tidak ada antrean baru."
+            : "Belum ada data prediksi yang terverifikasi."}
+        </p>
       </div>
     )
   }
@@ -46,7 +51,7 @@ export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
         {predictions.map((prediction: Prediction) => {
           const isPending = prediction.status === "PENDING"
           const isCurated = typeof prediction.isVerified === "boolean"
-          
+
           return (
             <Card
               key={prediction.id}
@@ -66,14 +71,15 @@ export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
                   sizes="(max-width: 640px) 50vw, 20vw"
                   unoptimized
                 />
-                
+
                 <div className="absolute top-2 right-2">
                   <Badge variant={prediction.status === 'SUCCESS' ? 'default' : 'destructive'} className="shadow-sm">
                     {prediction.status}
                   </Badge>
                 </div>
 
-                {isCurated && (
+                {/* Badge status kurasi — hanya tampil di mode dataset */}
+                {mode === "dataset" && isCurated && (
                   <div className="absolute bottom-2 right-2">
                     <Badge variant={prediction.isVerified ? "default" : "destructive"} className="gap-1 shadow-sm">
                       {prediction.isVerified ? <CheckCircle2 className="size-3" /> : <XCircle className="size-3" />}
@@ -84,8 +90,8 @@ export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
               </div>
 
               <CardHeader className="px-3 pt-3 pb-0">
-                {/* Tampilkan koreksi admin sebagai label utama jika ada */}
-                {prediction.actualVarietyCode ? (
+                {/* Tampilkan koreksi admin sebagai label utama jika ada (mode dataset) */}
+                {mode === "dataset" && prediction.actualVarietyCode ? (
                   <div className="space-y-0.5">
                     <p className="truncate text-sm font-bold text-amber-600 dark:text-amber-400">
                       {prediction.actualVarietyCode} (Koreksi)
@@ -125,6 +131,7 @@ export function PredictionCardGrid({ predictions }: PredictionCardGridProps) {
           setModalOpen(open)
           if (!open) setSelectedPrediction(null)
         }}
+        readOnly={mode === "dataset"}
       />
     </>
   )

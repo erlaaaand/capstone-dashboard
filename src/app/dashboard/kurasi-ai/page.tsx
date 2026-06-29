@@ -12,14 +12,8 @@ export const metadata: Metadata = {
   description: "Validasi hasil prediksi AI varietas durian sebagai mekanisme quality control.",
 }
 
-/** Jumlah item per halaman — kelipatan 4 (jumlah kolom grid) */
 const ITEMS_PER_PAGE = 20
 
-/**
- * Halaman Kurasi AI — Server Component.
- * Fetch data awal via fetchServer (SSR) dengan token dari cookie.
- * Pagination dikontrol via searchParams URL (?page=N) bukan useState.
- */
 export default async function KurasiAiPage({
   searchParams,
 }: {

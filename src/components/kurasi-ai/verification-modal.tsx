@@ -35,12 +35,14 @@ interface VerificationModalProps {
   prediction: Prediction | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  readOnly?: boolean
 }
 
 export function VerificationModal({
   prediction,
   open,
   onOpenChange,
+  readOnly = false,
 }: VerificationModalProps) {
   const router = useRouter()
   const [adminNote, setAdminNote] = React.useState("")
@@ -51,7 +53,6 @@ export function VerificationModal({
   React.useEffect(() => {
     if (open) {
       setAdminNote(prediction?.adminNote ?? "")
-      // Prefill dropdown dengan koreksi sebelumnya jika ada
       setCorrectedVariety(prediction?.actualVarietyCode ?? "")
     }
   }, [open, prediction])
@@ -244,7 +245,7 @@ export function VerificationModal({
                 <Select
                   value={correctedVariety}
                   onValueChange={setCorrectedVariety}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || readOnly}
                 >
                   <SelectTrigger id="correction-select" className="w-full h-9 text-xs font-medium shadow-2xs">
                     <SelectValue placeholder="Pilih varietas durian yang benar..." />
@@ -275,7 +276,7 @@ export function VerificationModal({
             placeholder="Masukkan keterangan pendukung audit data data kurasi (misal: ciri fisik, kematangan, atau alasan penolakan)..."
             value={adminNote}
             onChange={(e) => setAdminNote(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || readOnly}
             className="resize-none min-h-[70px] text-xs leading-relaxed focus-visible:ring-1"
             rows={2}
           />

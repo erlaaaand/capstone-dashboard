@@ -13,7 +13,7 @@ export async function fetchServer<T = unknown>(
   const token = cookieStore.get('admin_token')?.value;
 
   const baseUrl =
-    process.env.INTERNAL_API_BASE_URL || 'http://127.0.0.1:3001/api/v1';
+    process.env.INTERNAL_API_BASE_URL || 'http://[IP_ADDRESS]/api/v1';
 
   const res = await fetch(`${baseUrl}${path}`, {
     ...init,

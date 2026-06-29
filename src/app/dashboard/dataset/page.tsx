@@ -1,44 +1,52 @@
-"use client"
+// src/app/dashboard/dataset/page.tsx
 
-import * as React from "react"
-import { AdminPredictionService } from "@/src/core/services/prediction.service"
-import { Prediction } from "@/src/core/types/prediction.types"
+import type { Metadata } from "next"
+import Link from "next/link"
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+
+import { fetchServer } from "@/src/core/api/server-client"
+import { PaginatedPredictions } from "@/src/core/types/prediction.types"
 import { PredictionCardGrid } from "@/src/components/kurasi-ai/prediction-card-grid"
 import { ExportButton } from "@/src/components/kurasi-ai/export-button"
-import { Loader2Icon, AlertCircleIcon, RefreshCwIcon } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 
-export default function DatasetPage() {
-  const [predictions, setPredictions] = React.useState<Prediction[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+export const dynamic = "force-dynamic"
 
-  const fetchDataset = React.useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+export const metadata: Metadata = {
+  title: "Dataset Terverifikasi",
+  description: "Kelola dan ekspor data gambar durian yang telah dikurasi.",
+}
 
-    try {
-      // Memanggil API dengan filter isCurated: true
-      const response = await AdminPredictionService.list({
-        page: 1,
-        limit: 50, // Sesuaikan limit sesuai kebutuhan
-        isCurated: true, // KUNCI: Hanya ambil data yang sudah divalidasi admin
-      })
-      setPredictions(response.data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memuat dataset terverifikasi")
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+const ITEMS_PER_PAGE = 20
 
-  React.useEffect(() => {
-    fetchDataset()
-  }, [fetchDataset])
+export default async function DatasetPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  // 1. Ambil parameter page dari URL (?page=1)
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? 1))
+
+  let data: PaginatedPredictions
+  let fetchError: string | null = null
+
+  try {
+    // 2. Fetch data dari server dengan isCurated=true
+    data = await fetchServer<PaginatedPredictions>(
+      `/admin/predictions?page=${page}&limit=${ITEMS_PER_PAGE}&isCurated=true`
+    )
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Gagal memuat dataset terverifikasi"
+    data = { data: [], total: 0, page, limit: ITEMS_PER_PAGE, totalPages: 0 }
+  }
+
+  const hasPrevPage = page > 1
+  const hasNextPage = page < data.totalPages
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
-      {/* Header Halaman */}
+      {/* ── Header Halaman ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dataset Terverifikasi</h1>
@@ -46,40 +54,68 @@ export default function DatasetPage() {
             Kumpulan data gambar dan hasil prediksi yang telah melalui proses kurasi. Siap diekspor untuk proses retraining model AI.
           </p>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex items-center gap-4">
           <ExportButton />
         </div>
       </div>
 
-      {/* Konten Utama */}
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
-          <Loader2Icon className="size-8 animate-spin mb-4" />
-          <p>Memuat dataset...</p>
-        </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center py-24 text-destructive border-2 border-dashed border-destructive/20 rounded-xl bg-destructive/5">
-          <AlertCircleIcon className="size-8 mb-4" />
-          <p className="font-medium">{error}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchDataset} 
-            className="mt-4 gap-2 bg-background"
-          >
-            <RefreshCwIcon className="size-4" />
-            Coba muat ulang
-          </Button>
-        </div>
-      ) : (
+      {/* ── Error State ── */}
+      {!fetchError && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">
-              Total <span className="font-bold text-primary">{predictions.length}</span> data siap pakai.
+              Menampilkan {data.data.length > 0 ? (page - 1) * ITEMS_PER_PAGE + 1 : 0}–{Math.min(page * ITEMS_PER_PAGE, data.total)} dari total <span className="font-bold text-primary">{data.total}</span> data siap pakai.
             </p>
           </div>
+
+          <PredictionCardGrid predictions={data.data} mode="dataset" />
+        </div>
+      )}
+
+      {/* ── Konten Utama ── */}
+      {!fetchError && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">
+              Menampilkan {data.data.length > 0 ? (page - 1) * ITEMS_PER_PAGE + 1 : 0}–{Math.min(page * ITEMS_PER_PAGE, data.total)} dari total <span className="font-bold text-primary">{data.total}</span> data siap pakai.
+            </p>
+          </div>
+
           {/* Menampilkan Grid Kartu Prediksi */}
-          <PredictionCardGrid predictions={predictions} />
+          <PredictionCardGrid predictions={data.data} />
+        </div>
+      )}
+
+      {/* ── Kontrol Paginasi ── */}
+      {data.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          {hasPrevPage ? (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/dashboard/dataset?page=${page - 1}`}>
+                <ChevronLeftIcon className="size-4 mr-1" /> Sebelumnya
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              <ChevronLeftIcon className="size-4 mr-1" /> Sebelumnya
+            </Button>
+          )}
+
+          <span className="px-4 text-sm font-medium text-muted-foreground">
+            {page} / {data.totalPages}
+          </span>
+
+          {hasNextPage ? (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/dashboard/dataset?page=${page + 1}`}>
+                Berikutnya <ChevronRightIcon className="size-4 ml-1" />
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              Berikutnya <ChevronRightIcon className="size-4 ml-1" />
+            </Button>
+          )}
         </div>
       )}
     </div>
