@@ -1,4 +1,5 @@
 // src/core/services/prediction.service.ts
+import axios, { AxiosHeaders, AxiosResponse } from 'axios';
 import { apiClient } from '../api/api-client';
 import { PaginatedPredictions, Prediction } from '../types/prediction.types';
 
@@ -27,27 +28,57 @@ export const AdminPredictionService = {
   },
 
   delete: async (id: string): Promise<void> => {
-    return apiClient.delete(`/admin/predictions/${id}`);
+    return apiClient.delete(`/admin/predictions/${id}`) as unknown as void;
   },
 
   exportDataset: async (): Promise<Blob> => {
     try {
+      // responseType 'blob' membuat interceptor mengembalikan AxiosResponse penuh
       const response = await apiClient.get('/admin/predictions/export', {
         responseType: 'blob',
-      });
+      }) as unknown as AxiosResponse<Blob>;
 
-      return response.data as Blob;
+      const blob = response.data;
+
+      if (!blob || blob.size === 0) {
+        throw new Error('Dataset kosong atau tidak ada data yang bisa diekspor');
+      }
+
+      // Fix TS2339: response.headers bisa berupa AxiosHeaders | plain object.
+      // Gunakan AxiosHeaders.from() agar selalu punya .get() yang type-safe,
+      // hasilnya string | number | boolean | null — narrow ke string sebelum .includes().
+      const headers = AxiosHeaders.from(response.headers);
+      const contentTypeRaw = headers.get('content-type');
+      const contentType = typeof contentTypeRaw === 'string' ? contentTypeRaw : '';
+
+      if (contentType.includes('application/json')) {
+        // Server return JSON error dengan status 2xx — ekstrak pesannya
+        const errorText = await blob.text();
+        try {
+          const errorJson = JSON.parse(errorText) as { message?: string };
+          throw new Error(errorJson.message || 'Server mengembalikan error saat export');
+        } catch {
+          throw new Error('Gagal mengekspor dataset — respons tidak terduga dari server');
+        }
+      }
+
+      return blob;
 
     } catch (error: unknown) {
-      if (typeof error === 'object' && error !== null && 'response' in error) {
-
-        const errObj = error as { response?: { data?: unknown } };
-        const errorData = errObj.response?.data;
-
-        if (errorData instanceof Blob && errorData.type === 'application/json') {
-          const errorText = await errorData.text();
-          const errorJson = JSON.parse(errorText) as { message?: string };
-          throw new Error(errorJson.message || 'Gagal mengunduh dataset');
+      // Tangani HTTP error (4xx/5xx) yang body-nya Blob berisi JSON
+      if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+        const errorBlob = error.response.data as Blob;
+        // blob.type adalah string murni — .includes() aman dipakai di sini
+        if (errorBlob.type.includes('application/json')) {
+          const errorText = await errorBlob.text();
+          try {
+            const errorJson = JSON.parse(errorText) as { message?: string };
+            throw new Error(errorJson.message || 'Gagal mengunduh dataset');
+          } catch (parseErr) {
+            if (parseErr instanceof Error && parseErr.message !== 'Gagal mengunduh dataset') {
+              throw parseErr;
+            }
+          }
         }
       }
 
